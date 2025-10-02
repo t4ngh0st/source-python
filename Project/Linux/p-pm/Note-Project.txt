@@ -1,0 +1,383 @@
+# Package Manager untuk Linux From Scratch (P-pm)
+
+Berikut adalah rancangan untuk P-pm (Python Package Manager), sebuah package manager sederhana untuk Linux From Scratch yang dibangun dengan Python, terinspirasi oleh pacman.
+
+## Struktur Projek
+
+```
+p-pm/
+├── p_pm/                      # Direktori utama package
+│   ├── __init__.py            # File inisialisasi package
+│   ├── main.py                # Program utama
+│   ├── package.py             # Kelas untuk menangani package
+│   ├── database.py            # Kelas untuk menangani database package
+│   ├── config.py              # Konfigurasi sistem
+│   ├── utils.py               # Fungsi utilitas
+│   ├── exceptions.py          # Custom exceptions
+├── tests/                     # Unit tests
+├── data/                      # Data package
+│   ├── packages/              # Repositori package binary
+│   ├── sources/               # Source code package
+│   ├── p-pm.db                # Database package terinstal
+├── docs/                      # Dokumentasi
+├── Makefile                   # Untuk instalasi
+├── requirements.txt           # Dependensi Python
+├── setup.py                   # Setup script
+└── README.md                  # Dokumentasi proyek
+```
+
+## Fitur Utama
+
+1. **Manajemen Package Dasar**:
+   - Instalasi package
+   - Penghapusan package
+   - Upgrade package
+   - Pencarian package
+
+2. **Dependency Resolution**:
+   - Penanganan dependensi sederhana
+   - Konflik detection
+
+3. **Database Package**:
+   - Penyimpanan informasi package terinstal
+   - Versi tracking
+
+4. **Repositori**:
+   - Dukungan repositori lokal
+   - Kemampuan menambahkan repositori eksternal
+
+5. **Build System**:
+   - Kompilasi package dari source
+   - Pembuatan package binary
+
+## Implementasi Kode
+
+### 1. `main.py` (Entry Point)
+
+```python
+#!/usr/bin/env python3
+import argparse
+from .package import PackageManager
+from .config import Config
+
+def main():
+    config = Config.load()
+    pm = PackageManager(config)
+    
+    parser = argparse.ArgumentParser(description='P-pm - Package Manager for LFS')
+    subparsers = parser.add_subparsers(dest='command')
+    
+    # Install command
+    install_parser = subparsers.add_parser('install', help='Install packages')
+    install_parser.add_argument('packages', nargs='+', help='Package names to install')
+    
+    # Remove command
+    remove_parser = subparsers.add_parser('remove', help='Remove packages')
+    remove_parser.add_argument('packages', nargs='+', help='Package names to remove')
+    
+    # Update command
+    subparsers.add_parser('update', help='Update package database')
+    
+    # Upgrade command
+    subparsers.add_parser('upgrade', help='Upgrade all packages')
+    
+    # Search command
+    search_parser = subparsers.add_parser('search', help='Search for packages')
+    search_parser.add_argument('query', help='Search query')
+    
+    args = parser.parse_args()
+    
+    if args.command == 'install':
+        pm.install(args.packages)
+    elif args.command == 'remove':
+        pm.remove(args.packages)
+    elif args.command == 'update':
+        pm.update_db()
+    elif args.command == 'upgrade':
+        pm.upgrade()
+    elif args.command == 'search':
+        pm.search(args.query)
+    else:
+        parser.print_help()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 2. `package.py` (Package Manager Core)
+
+```python
+import os
+import tarfile
+import shutil
+from .database import PackageDB
+from .exceptions import PackageNotFound, DependencyError
+
+class PackageManager:
+    def __init__(self, config):
+        self.config = config
+        self.db = PackageDB(config.db_path)
+        
+    def install(self, package_names):
+        """Install one or more packages"""
+        for name in package_names:
+            if self.db.is_installed(name):
+                print(f"Package {name} is already installed")
+                continue
+                
+            package_path = self._find_package(name)
+            if not package_path:
+                raise PackageNotFound(f"Package {name} not found in repositories")
+                
+            self._extract_package(package_path)
+            self._handle_dependencies(name)
+            self.db.add_package(name, self._get_package_metadata(package_path))
+            print(f"Successfully installed {name}")
+    
+    def remove(self, package_names):
+        """Remove one or more packages"""
+        for name in package_names:
+            if not self.db.is_installed(name):
+                print(f"Package {name} is not installed")
+                continue
+                
+            if self._has_dependents(name):
+                raise DependencyError(f"Cannot remove {name}: other packages depend on it")
+                
+            self._remove_files(name)
+            self.db.remove_package(name)
+            print(f"Successfully removed {name}")
+    
+    def upgrade(self):
+        """Upgrade all installed packages"""
+        pass
+    
+    def search(self, query):
+        """Search for packages"""
+        pass
+    
+    def update_db(self):
+        """Update package database"""
+        pass
+    
+    def _find_package(self, name):
+        """Find package in repositories"""
+        for repo in self.config.repos:
+            pkg_path = os.path.join(repo, f"{name}.pkg.tar.gz")
+            if os.path.exists(pkg_path):
+                return pkg_path
+        return None
+    
+    def _extract_package(self, package_path):
+        """Extract package to root filesystem"""
+        with tarfile.open(package_path, 'r:gz') as tar:
+            tar.extractall('/')
+    
+    def _handle_dependencies(self, package_name):
+        """Handle package dependencies"""
+        pass
+    
+    def _get_package_metadata(self, package_path):
+        """Extract metadata from package"""
+        return {"version": "1.0", "dependencies": []}
+    
+    def _has_dependents(self, package_name):
+        """Check if other packages depend on this one"""
+        return False
+    
+    def _remove_files(self, package_name):
+        """Remove package files"""
+        # In a real implementation, we would track installed files
+        print(f"Warning: Not actually removing files for {package_name}")
+```
+
+### 3. `database.py` (Package Database)
+
+```python
+import sqlite3
+import json
+from pathlib import Path
+
+class PackageDB:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self._init_db()
+    
+    def _init_db(self):
+        """Initialize database if it doesn't exist"""
+        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
+        with self._get_connection() as conn:
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS packages (
+                    name TEXT PRIMARY KEY,
+                    version TEXT,
+                    dependencies TEXT,
+                    files TEXT
+                )
+            ''')
+    
+    def _get_connection(self):
+        """Get database connection"""
+        return sqlite3.connect(self.db_path)
+    
+    def is_installed(self, package_name):
+        """Check if package is installed"""
+        with self._get_connection() as conn:
+            cursor = conn.execute('SELECT name FROM packages WHERE name = ?', (package_name,))
+            return cursor.fetchone() is not None
+    
+    def add_package(self, name, metadata):
+        """Add package to database"""
+        with self._get_connection() as conn:
+            conn.execute('''
+                INSERT INTO packages (name, version, dependencies, files)
+                VALUES (?, ?, ?, ?)
+            ''', (
+                name,
+                metadata.get('version', ''),
+                json.dumps(metadata.get('dependencies', [])),
+                json.dumps(metadata.get('files', []))
+            ))
+    
+    def remove_package(self, name):
+        """Remove package from database"""
+        with self._get_connection() as conn:
+            conn.execute('DELETE FROM packages WHERE name = ?', (name,))
+    
+    def get_package_info(self, name):
+        """Get package information"""
+        with self._get_connection() as conn:
+            cursor = conn.execute('SELECT * FROM packages WHERE name = ?', (name,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    'name': row[0],
+                    'version': row[1],
+                    'dependencies': json.loads(row[2]),
+                    'files': json.loads(row[3])
+                }
+            return None
+```
+
+### 4. `config.py` (Configuration)
+
+```python
+import os
+import json
+from pathlib import Path
+
+class Config:
+    def __init__(self, repos, db_path):
+        self.repos = repos
+        self.db_path = db_path
+    
+    @classmethod
+    def load(cls, config_path='/etc/p-pm.conf'):
+        """Load configuration from file"""
+        default_config = {
+            'repos': ['/var/lib/p-pm/packages'],
+            'db_path': '/var/lib/p-pm/p-pm.db'
+        }
+        
+        try:
+            with open(config_path) as f:
+                config = json.load(f)
+                repos = config.get('repos', default_config['repos'])
+                db_path = config.get('db_path', default_config['db_path'])
+                return cls(repos, db_path)
+        except FileNotFoundError:
+            return cls(**default_config)
+```
+
+## Cara Penggunaan
+
+### Instalasi
+
+1. Clone repositori:
+   ```bash
+   git clone https://github.com/username/p-pm.git
+   cd p-pm
+   ```
+
+2. Install dependensi:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Install P-pm:
+   ```bash
+   python setup.py install
+   ```
+
+### Penggunaan Dasar
+
+1. **Menginstal package**:
+   ```bash
+   p-pm install nama_package
+   ```
+
+2. **Menghapus package**:
+   ```bash
+   p-pm remove nama_package
+   ```
+
+3. **Memperbarui database package**:
+   ```bash
+   p-pm update
+   ```
+
+4. **Meningkatkan semua package**:
+   ```bash
+   p-pm upgrade
+   ```
+
+5. **Mencari package**:
+   ```bash
+   p-pm search query
+   ```
+
+### Membuat Package
+
+1. Buat direktori package:
+   ```bash
+   mkdir -p my_package/{bin,lib,include,share}
+   ```
+
+2. Tambahkan file yang diperlukan
+
+3. Buat file metadata `PKGINFO`:
+   ```
+   name = my_package
+   version = 1.0
+   description = My test package
+   dependencies = libc, python
+   ```
+
+4. Buat package:
+   ```bash
+   tar czvf my_package.pkg.tar.gz -C my_package .
+   ```
+
+5. Tambahkan ke repositori:
+   ```bash
+   cp my_package.pkg.tar.gz /var/lib/p-pm/packages/
+   ```
+
+## Catatan Implementasi
+
+1. **Keterbatasan**:
+   - Ini adalah implementasi dasar yang perlu diperluas untuk penggunaan produksi
+   - Dependency resolution masih sangat sederhana
+   - Tidak ada penanganan konflik file
+
+2. **Penyempurnaan yang Disarankan**:
+   - Tambahkan signature verification untuk package
+   - Implementasikan delta updates
+   - Tambahkan parallel downloads
+   - Buat sistem build yang lebih canggih
+
+3. **Keamanan**:
+   - Selalu verifikasi checksum package
+   - Gunakan privilege separation untuk operasi yang membutuhkan root
+
+Package manager ini dirancang untuk Linux From Scratch yang membutuhkan solusi ringan dan dapat disesuaikan. Dengan struktur dasar ini, Anda dapat mengembangkannya lebih lanjut sesuai kebutuhan spesifik sistem Anda.

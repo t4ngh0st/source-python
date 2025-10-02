@@ -1,0 +1,30 @@
+Untuk Membuat File '.txt' Menggunakan Library os Di Python.Anda Dapat Menggunakan
+Fungsi 'open()' dengan mode 'w(write)' untuk Membuka File Dalam Mode Penulisan.Jika
+File Belum, 'open()' Akan Membuatnya.Berikut Contohnya:
+
+
+
+import os
+
+namaFile = "contoh.txt"
+
+try:
+    # Buka File Dalam Mode Penulisan
+    with open(namaFile, "w") as file:
+        # Tulis Konten Ke Dalam File
+        file.write('Ini Adalah Contoh Teks Yang Ingin Ditulis Dalam File')
+    
+    print(f"File '{namaFile}' Telah Dibuat")
+
+except Exception as e:
+    print(f"Terjadi Kesalahan: {e}")
+
+
+
+Note:
+1.import os : Menghubungkan Library os untuk Menggakses OS
+2.namaFile = "contoh.txt"  : Menentukan Nama File Yang Akan Dibuat
+3.with open(namaFile, "w") as file:   : Membuka File Dalam Mode Penulisan.
+    Jika File Belum Ada Maka Akan Membuatnya.Jika Sudah Ada Akan Ditimpa.
+4.file.write("...") : Menulis Konten Ke Dalam File
+5.print("...) : Menampilkan Pesan Sukses Atau Kesalahan
