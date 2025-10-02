@@ -1,0 +1,68 @@
+<<[installation]>>
+=====================================================================
+[Windows]
+1.Download Python Dari https://www.python.org/downloads/
+2.Pilih File:
+    Windows Installer(64-Bit)
+    Windows Installer(32-Bit)
+    Windows Installer(ARM64)
+3.Install File Installer Python
+4.Cek Version
+    python --version
+5.Pilih IDE:
+    PyCharm
+    VSCode
+    VsCodium
+    Vim
+    Neovim
+    Atom
+    Sublime
+=====================================================================
+
+=====================================================================
+[MacOS]
+1.Download Python
+Url      = https://www.python.org/downloads/
+    Pilih File
+Homebrew = brew install python@x.x.x (Recommended)
+2.Cek Version
+    python --version atau python3 --version
+3.Pilih IDE:
+    PyCharm
+    VSCode
+    VsCodium
+    Vim
+    Neovim
+    Atom
+=====================================================================
+
+=====================================================================
+[Linux]
+1.installation
+    * Debian/Ubuntu Atau Turunannya(APT)
+        >> sudo apt install python atau sudo apt install python3
+    * RHEL/Fedora/CentOS atau Turunannya(RPM)
+        >> sudo yum install python atau sudo yum install python3
+    * Arch Linux atau Turunannya(pacman)
+        >> sudo pacman -S python atau sudo pacman -S python3
+    * Void Linux atau Turunannya(xbps)
+        >> sudo xbps-install python atau sudo xbps-install python3
+    * Solus OS
+        >> sudo eopkg install python atau sudo eopkg install python3
+2.Cek Version
+    python --version atau python3 --version
+3.Pilih IDE:
+    PyCharm
+    VSCode
+    VsCodium
+    Vim
+    Neovim
+    Atom
+    Sublime
+=====================================================================
+
+<<[Set Up]>>
+1.Buat Script Python Dengan Extension .py
+>> main.py
+2.Buka Terminal dan Jalankan Python
+>> python main.py atau python3 main.py

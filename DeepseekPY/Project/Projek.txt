@@ -1,0 +1,11 @@
+[Pemula]
+1.Kalkulator
+2.To-Do-List
+
+[Intermedate]
+1.Aplikasi Manajemen Kontak
+2.Web Scrapper
+
+[Master]
+1.REST API Dengan Flask/Django
+2.Analisis Data Dengan Pandas

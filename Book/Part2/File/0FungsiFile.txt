@@ -1,0 +1,24 @@
+Fungsi Open()
+Berguna Untuk Membuka Jenis File Apapun,Sintax Fungsi open() adalah:
+Objek File = open(nama_file [, mode akses][, buffering])
+
+# Ex:
+    fileobj = open('home/testfile','r')
+
+# Sintax Buffering
+r = Read(Membaca Isi File)
+w = Write(Menulis Isi File)
+a = Append(Menambahkan Isi File)
+<<Binary>>
+rb = read file binary
+wb = write file binary
+ab = append file binary
+<<Read & Write>>
+r+ = Read & Write
+w+ = Write & Read
+a+ = Append & Read
+rb+ = read & write file binary
+wb+ = write & read file binary
+ab+ = append & read file binary
+# Ex:
+    fileobj = open ('/home/testfile','r+')

@@ -1,0 +1,24 @@
+# Membuat Folder
+import os
+os.mkdir("Folder Test")
+
+# Mengubah Posisi Folder Aktif
+os.chdir("Folder Test")
+
+# Mengetahui Nama Folder Yang Sedang Aktif
+print(os.getcwd())
+
+# Mengetahui Ada Tidaknya Suatu Folder
+if os.path.isdir("Folder Test")==True:
+    print("Ada")
+else:
+    print("Tidak Ada")
+
+# Menghapus Folder
+os.rmdir("Folder Test")
+
+# Mengetahui Ada Tidaknya Suatu Folder 
+if os.path.isdir("Folder Test")==True:
+    print("Ada")
+else:
+    print("Tidak Ada")

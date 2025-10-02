@@ -1,0 +1,206 @@
+Tentu, mari kita sempurnakan skrip project2.py Anda agar bisa membuat, menghapus, dan menampilkan acara, termasuk acara yang sudah berlalu jika diminta.
+
+Berikut adalah versi skrip yang telah disempurnakan:
+
+============================================================================================
+# Di project ini akan menggabungkan operator aritmatika dan library datetime
+# Pengingat Acara
+
+import datetime as dt
+import sys  # Digunakan Untuk exit() yang lebih standar
+import math # Digunakan untuk perhitungan waktu tersisa
+
+# List Untuk Menyimpan Data Acara (Setiap Acara Adalah Dictionary)
+daftar_acara = []
+
+def format_timedelta(delta):
+    """Memformat timedelta menjadi string yang mudah dibaca (Hari, Jam, Menit, Detik)."""
+    total_seconds = int(delta.total_seconds())
+
+    if total_seconds < 0:
+        return "Telah Berlalu"
+
+    days, remainder = divmod(total_seconds, 86400)
+    hours, remainder = divmod(remainder, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    parts = []
+    if days > 0:
+        parts.append(f"{days} hari")
+    if hours > 0:
+        parts.append(f"{hours} jam")
+    if minutes > 0:
+        parts.append(f"{minutes} menit")
+    if seconds > 0 or not parts: # Tampilkan detik jika tidak ada bagian lain atau jika detik > 0
+        parts.append(f"{seconds} detik")
+
+    return ", ".join(parts) + " lagi"
+
+
+def show_menu():
+    """Menampilkan menu utama kepada pengguna."""
+    print('\n' + "=" * 28)
+    print("      PENGINGAT ACARA")
+    print("=" * 28)
+    print("[1] Membuat Acara Baru")
+    print("[2] Menghapus Acara")
+    print("[3] Menampilkan Semua Acara")
+    print("[4] Keluar")
+    print("=" * 28)
+
+def create_event():
+    """Membuat acara baru dan menambahkannya ke daftar."""
+    print("\n---- Membuat Acara Baru ----")
+    nama_acara = input("Masukkan Nama Acara : ")
+    if not nama_acara:
+        print("Nama acara tidak boleh kosong.")
+        return
+
+    while True:
+        tanggal_str = input("Masukkan Tanggal Acara (YYYY-MM-DD): ")
+        waktu_str = input("Masukkan Waktu Acara (HH:MM): ")
+        try:
+            # Menggabungkan Tanggal & Waktu, Lalu Mengonversi ke Objek DateTime
+            datetime_str = f"{tanggal_str} {waktu_str}"
+            waktu_acara = dt.datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
+
+            # Cek Apakah Waktu Acara Sudah Lewat (opsional, bisa dihapus jika ingin mengizinkan acara lampau)
+            # if waktu_acara < dt.datetime.now():
+            #     print("Waktu yang dimasukkan sudah lewat. Masukkan waktu mendatang.")
+            #     continue # Kembali Meminta Input Tanggal & Waktu
+
+            # Tambahkan acara ke daftar
+            acara_baru = {"nama": nama_acara, "waktu": waktu_acara}
+            daftar_acara.append(acara_baru)
+            print(f"Acara '{nama_acara}' pada {waktu_acara.strftime('%Y-%m-%d %H:%M')} berhasil ditambahkan.")
+            break # Keluar Dari LOOP Jika Input Valid dan acara ditambahkan
+
+        except ValueError:
+            print("Format Tanggal (YYYY-MM-DD) atau Waktu (HH:MM) tidak valid. Silakan coba lagi.")
+        except Exception as e:
+            print(f"Terjadi kesalahan: {e}")
+            break # Keluar jika ada error tak terduga
+
+def display_events():
+    """Menampilkan semua acara yang tersimpan, termasuk waktu tersisa atau status 'Telah Berlalu'."""
+    print("\n---- Daftar Acara ----")
+    if not daftar_acara:
+        print("Belum ada acara yang tersimpan.")
+        return False # Mengembalikan False untuk menandakan daftar kosong
+
+    # Urutkan acara berdasarkan waktu (opsional, tapi membantu)
+    daftar_acara.sort(key=lambda x: x['waktu'])
+
+    sekarang = dt.datetime.now()
+    print(f"{'No.':<4} {'Nama Acara':<25} {'Waktu Acara':<20} {'Status / Sisa Waktu':<30}")
+    print("-" * 80)
+    for i, acara in enumerate(daftar_acara):
+        waktu_acara = acara['waktu']
+        selisih_waktu = waktu_acara - sekarang
+        status_waktu = format_timedelta(selisih_waktu)
+
+        print(f"{i+1:<4} {acara['nama']:<25} {waktu_acara.strftime('%Y-%m-%d %H:%M'):<20} {status_waktu:<30}")
+    print("-" * 80)
+    return True # Mengembalikan True untuk menandakan ada acara yang ditampilkan
+
+def delete_event():
+    """Menghapus acara dari daftar berdasarkan nomor."""
+    print("\n---- Menghapus Acara ----")
+    # Tampilkan acara terlebih dahulu agar pengguna tahu nomornya
+    if not display_events():
+        return # Kembali jika tidak ada acara untuk dihapus
+
+    while True:
+        try:
+            pilihan_hapus = input(f"Masukkan nomor acara yang ingin dihapus (1-{len(daftar_acara)}), atau 0 untuk batal: ")
+            nomor_hapus = int(pilihan_hapus)
+
+            if nomor_hapus == 0:
+                print("Penghapusan dibatalkan.")
+                break
+            elif 1 <= nomor_hapus <= len(daftar_acara):
+                # Ingat, input pengguna 1-based, index list 0-based
+                acara_dihapus = daftar_acara.pop(nomor_hapus - 1)
+                print(f"Acara '{acara_dihapus['nama']}' berhasil dihapus.")
+                break
+            else:
+                print(f"Nomor tidak valid. Masukkan angka antara 1 dan {len(daftar_acara)}.")
+        except ValueError:
+            print("Input tidak valid. Masukkan angka.")
+        except Exception as e:
+            print(f"Terjadi kesalahan saat menghapus: {e}")
+            break
+
+# --- Loop Utama Program ---
+def main():
+    """Fungsi utama untuk menjalankan aplikasi pengingat acara."""
+    while True:
+        show_menu()
+        pilihan = input("Pilih Opsi Menu [1-4]: ")
+
+        if pilihan == '1':
+            create_event()
+        elif pilihan == '2':
+            delete_event()
+        elif pilihan == '3':
+            display_events()
+            input("\nTekan Enter untuk kembali ke menu...") # Jeda agar pengguna bisa membaca
+        elif pilihan == '4':
+            print("Terima kasih telah menggunakan Pengingat Acara. Sampai jumpa!")
+            sys.exit() # Keluar dari program
+        else:
+            print("Pilihan tidak valid. Silakan masukkan angka antara 1 dan 4.")
+
+if __name__ == "__main__":
+    main()
+
+
+=============================================================================================
+
+Perubahan dan Penyempurnaan:
+
++> Fungsi create_event (sebelumnya create_a_event):
+
+> Nama fungsi diubah menjadi create_event agar lebih konsisten.
+> Memperbaiki typo VallueError menjadi ValueError.
+> Menambahkan acara yang valid (nama dan datetime object) sebagai dictionary ke dalam list daftar_acara.
+> Memberikan pesan konfirmasi setelah acara berhasil ditambahkan.
+> Menambahkan pemeriksaan jika nama_acara kosong.
+> Menambahkan try...except Exception yang lebih umum untuk menangkap error tak terduga lainnya.
+> Komentar untuk pemeriksaan waktu lampau dipertahankan tapi dinonaktifkan (# if waktu_acara < dt.datetime.now():), sehingga Anda bisa menambahkan acara yang sudah lewat jika diinginkan. Jika ingin mencegahnya, hapus tanda #.
+
++> Fungsi display_events (Baru):
+
+> Fungsi ini sekarang menangani penampilan semua acara.
+> Memeriksa apakah daftar_acara kosong.
+> Mengurutkan acara berdasarkan waktu (opsional tapi berguna).
+> Menghitung waktu sekarang (dt.datetime.now()).
+> Untuk setiap acara, menghitung selisih waktu (timedelta) antara waktu acara dan waktu sekarang.
+> Memanggil fungsi format_timedelta untuk menampilkan status (misalnya, "Telah Berlalu", "5 jam, 10 menit lagi").
+> Menampilkan daftar acara dalam format tabel yang rapi.
+> Mengembalikan True jika ada acara yang ditampilkan, False jika tidak.
+
++> Fungsi format_timedelta (Baru):
+
+> Fungsi pembantu untuk mengubah objek timedelta menjadi string yang lebih mudah dibaca (misalnya, "2 hari, 3 jam, 30 menit lagi" atau "Telah Berlalu").
+
++> Fungsi delete_event (Baru):
+
+> Memanggil display_events() terlebih dahulu agar pengguna bisa melihat nomor acara yang ingin dihapus.
+> Memeriksa apakah ada acara yang bisa dihapus (berdasarkan return value dari display_events).
+> Meminta pengguna memasukkan nomor acara yang akan dihapus.
+> Menambahkan opsi untuk membatalkan penghapusan (dengan memasukkan 0).
+> Melakukan validasi input (harus angka dan dalam rentang yang valid).
+> Menggunakan daftar_acara.pop(index) untuk menghapus acara yang dipilih (ingat konversi dari nomor 1-based ke index 0-based).
+> Memberikan pesan konfirmasi setelah penghapusan.
+
++> Loop Utama (main function):
+
+> Menggunakan loop while True untuk menjaga program tetap berjalan sampai pengguna memilih keluar.
+> Memanggil show_menu() di setiap iterasi.
+> Mengambil input pengguna.
+> Menggunakan if/elif/else untuk memanggil fungsi yang sesuai berdasarkan pilihan pengguna.
+> Menambahkan input(...) setelah menampilkan acara agar layar tidak langsung kembali ke menu.
+> Menggunakan sys.exit() untuk keluar dari program saat opsi '4' dipilih.
+> Menangani input menu yang tidak valid.
+> Menggunakan if __name__ == "__main__": untuk memastikan main() hanya dijalankan saat skrip dieksekusi secara langsung.

@@ -1,0 +1,12 @@
+Jika Kita Menginginkan Untuk Mengakses Komputer Lain(Melalui Jaringan) Dengan WMI
+Library,Misalnya Nama Mesin=MachineB,Nama User=fred & password=secret.
+Maka Format Pengaksesnnya:
+
+import WMI
+con = wmi.WMI("MachineB", user=r"MachineB\fred", password="secret")
+
+Sedangkan Jika Berupa IP Address,Misalnya IP = 13.76.128.231,
+username = pratek, & password= P@sw0rd@123.Maka Format Dasarnya:
+
+import wmi
+con = wmi.WMI("13.76.128.231", user=r"pratek", password="P@sw0rd@123")
